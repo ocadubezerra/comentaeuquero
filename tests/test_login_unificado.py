@@ -74,7 +74,7 @@ def meta(monkeypatch):
 def modo_fb(monkeypatch):
     """Instância configurada no login unificado, sem conta conectada."""
     from app import main
-    for v in ("CEQ_ENCRYPTION_KEY", "META_APP_ID", "META_APP_SECRET", "META_LOGIN_MODO",
+    for v in ("META_APP_ID", "META_APP_SECRET", "META_LOGIN_MODO",
               "META_FB_APP_ID", "META_FB_APP_SECRET", "META_FB_CONFIG_ID"):
         monkeypatch.delenv(v, raising=False)
     monkeypatch.setattr(main, "BASE_URL", BASE)

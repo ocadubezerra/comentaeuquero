@@ -1,4 +1,6 @@
 import os, tempfile, pytest
+from cryptography.fernet import Fernet
+os.environ["CEQ_ENCRYPTION_KEY"] = Fernet.generate_key().decode()
 os.environ.setdefault("DATA_DIR", tempfile.mkdtemp(prefix="ceq-test-"))
 os.environ["ADMIN_PASSWORD"] = ""
 os.environ["CEQ_SETUP_TOKEN"] = "tok-teste"
@@ -79,7 +81,6 @@ def _so_esta_conta(conta_id):
 def conta_wa(monkeypatch):
     import uuid
     from app import segredos, whatsapp
-    monkeypatch.delenv("CEQ_ENCRYPTION_KEY", raising=False)
     c = db.upsert_account(uuid.uuid4().hex, "", "conta_wa", "tok-ig", "2099-01-01T00:00:00Z")
     _so_esta_conta(c["id"])
     db.set_wa_config(c["id"], "waba1", "pn1")

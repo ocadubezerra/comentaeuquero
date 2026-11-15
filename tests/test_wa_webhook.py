@@ -78,7 +78,7 @@ def test_payload_wa_sem_conta_configurada_so_loga(meta_wa):
 
 def test_rota_aceita_assinatura_do_segredo_wa(client, monkeypatch):
     from app import flowengine, segredos
-    monkeypatch.delenv("META_APP_SECRET", raising=False); monkeypatch.delenv("CEQ_ENCRYPTION_KEY", raising=False)
+    monkeypatch.delenv("META_APP_SECRET", raising=False)
     monkeypatch.delenv("META_WA_APP_SECRET", raising=False)
     monkeypatch.setattr(flowengine, "process_payload", lambda p: None)
     segredos.guardar("meta_app_secret", "ig-secret"); segredos.guardar("meta_wa_app_secret", "wa-secret")

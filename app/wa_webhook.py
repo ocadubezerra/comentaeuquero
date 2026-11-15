@@ -160,7 +160,7 @@ def _conta_da_waba(entry):
     if not r:
         db.log_event("webhook_sem_conta", payload={"waba_id": waba})
         return None
-    return dict(r)
+    return db.get_account(r["id"])
 
 
 def _limite_do_evento(valor, atual):

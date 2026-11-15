@@ -4,7 +4,6 @@ from tests.wa_helpers import _envelope
 
 
 def test_salvar_conecta_e_busca_estado(logado, conta_wa, meta_wa, monkeypatch):
-    monkeypatch.delenv("CEQ_ENCRYPTION_KEY", raising=False)
     meta_wa.fila(200, {"display_phone_number": "+55 11 4000-0000", "verified_name": "Loja", "quality_rating": "GREEN", "whatsapp_business_manager_messaging_limit": "TIER_250", "status": "CONNECTED"})
     meta_wa.fila(200, {"success": True})
     r = logado.post("/config", data={"wa_waba_id": "waba9", "wa_phone_number_id": "pn9", "wa_token": "tok-novo"}, follow_redirects=False)

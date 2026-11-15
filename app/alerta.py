@@ -14,7 +14,7 @@ import threading
 
 import requests
 
-from . import db
+from . import db, crypto_tokens
 
 
 def credenciais() -> tuple:
@@ -22,6 +22,8 @@ def credenciais() -> tuple:
     chat = db.get_ajuste("alerta_telegram_chat")
     if tok == "off":
         return "", ""
+    if tok:
+        tok = crypto_tokens.ler(tok)
     if not tok:
         tok = os.environ.get("ALERTA_TELEGRAM_TOKEN", "")
         chat = chat or os.environ.get("ALERTA_TELEGRAM_CHAT", "")

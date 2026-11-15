@@ -135,7 +135,14 @@ async def _ciclo(_app):
         yield
 
 
+from .crypto_tokens import ErroChave
+
 app = FastAPI(title="comenta EU QUERO", lifespan=_ciclo)
+
+
+@app.exception_handler(ErroChave)
+async def _erro_chave(request, exc):
+    return PlainTextResponse("Não foi possível acessar as credenciais. Confira e restaure a chave original CEQ_ENCRYPTION_KEY na configuração do servidor.", status_code=503)
 app.include_router(api.router)
 
 
@@ -366,11 +373,12 @@ def conexao_insegura(request: Request) -> bool:
     """True quando a senha viajaria em claro nesta requisição."""
     if PERMITE_HTTP or not COOKIE_SEGURO:
         return False
-    esquema = (request.headers.get("x-forwarded-proto", "")
-               or request.url.scheme).split(",")[0].strip().lower()
+    cliente = request.client.host if request.client else ""
+    # Headers enviados por clientes externos não comprovam que houve HTTPS.
+    encaminhado = request.headers.get("x-forwarded-proto", "") if _e_proxy(cliente) else ""
+    esquema = (encaminhado or request.url.scheme).split(",")[0].strip().lower()
     if esquema == "https":
         return False
-    cliente = request.client.host if request.client else ""
     host = (request.url.hostname or "").lower()
     return not (cliente in _LOCAIS and host in _LOCAIS)
 
@@ -689,7 +697,16 @@ def webhook_verify(request: Request):
 
 @app.post("/webhook")
 async def webhook_receive(request: Request, background: BackgroundTasks):
-    raw = await request.body()
+    # Impõe limite também quando Content-Length está ausente ou é falso.
+    limite = 1024 * 1024
+    partes = []
+    tamanho = 0
+    async for parte in request.stream():
+        tamanho += len(parte)
+        if tamanho > limite:
+            return Response(status_code=413)
+        partes.append(parte)
+    raw = b"".join(partes)
 
     # Sem APP_SECRET não existe como provar que o evento veio da Meta. Antes isso
     # simplesmente pulava a conferência, ou seja, a rota aceitava POST de qualquer
@@ -761,6 +778,8 @@ OAUTH_MODO_COOKIE = "ceq_oauth_modo"
 def auth_start(request: Request):
     if (r := require_login(request)):
         return r
+    if not segredos.cifrado_disponivel():
+        return PlainTextResponse("Configure a chave original CEQ_ENCRYPTION_KEY antes de conectar uma conta.", status_code=503)
     # escolha de conta que ficou pra trás (tokens das candidatas) não sobrevive a
     # uma conexão nova
     if segredos.ler(OAUTH_PENDENTE):
@@ -1280,6 +1299,12 @@ def config_save(request: Request, teto: str = Form(""), alerta_token: str = Form
     guard = require_login(request)
     if guard:
         return guard
+    credenciais = (alerta_token, meta_app_id, meta_app_secret, meta_fb_app_id, meta_fb_app_secret,
+                   meta_fb_config_id, meta_wa_app_secret, wa_token)
+    if any(v.strip() for v in credenciais) and not segredos.cifrado_disponivel():
+        return PlainTextResponse("Configure a chave original CEQ_ENCRYPTION_KEY antes de salvar credenciais.", status_code=503)
+    if any(v.strip() for v in credenciais):
+        db.validar_chave_existente()
     mudou = []
     destino = "/config?salvo=1"
 
@@ -1319,7 +1344,9 @@ def config_save(request: Request, teto: str = Form(""), alerta_token: str = Form
         # campo em branco preserva o valor atual: o formulário nunca mostra o
         # token salvo, então reenviar a página não pode apagá-lo
         if alerta_token.strip():
-            db.set_ajuste("alerta_telegram_token", alerta_token.strip())
+            db.validar_chave_existente()
+            from . import crypto_tokens
+            db.set_ajuste("alerta_telegram_token", crypto_tokens.cifrar(alerta_token.strip()))
             mudou.append("alerta_token")
         if alerta_chat.strip():
             db.set_ajuste("alerta_telegram_chat", alerta_chat.strip())
