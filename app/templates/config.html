@@ -14,8 +14,8 @@
   <h2>App da Meta</h2>
   <p class="sub" style="margin-top:0;">O ID e a chave secreta do app que você criou na Meta (passo a passo logo abaixo).
   Sem a chave secreta, a instância recusa os eventos da Meta: é com ela que confere que o evento veio mesmo de lá.</p>
-  {% if estado_chave == 'invalida' and not so_env %}<div class="aviso grave"><span class="dot err"></span><code>CEQ_ENCRYPTION_KEY</code> com chave inválida no .env: a chave secreta fica guardada sem cifra no banco desta instância. Gere uma chave nova (Fernet) e reinicie.</div>
-  {% elif not cifrado and not so_env %}<div class="aviso"><span class="dot warn"></span>Sem <code>CEQ_ENCRYPTION_KEY</code> no .env: a chave secreta fica guardada sem cifra no banco desta instância.</div>{% endif %}
+  {% if estado_chave == 'invalida' and not so_env %}<div class="aviso grave"><span class="dot err"></span><code>CEQ_ENCRYPTION_KEY</code> com chave inválida no .env: novas credenciais não podem ser salvas. Restaure a chave original; não gere outra se já houver dados cifrados.</div>
+  {% elif not cifrado and not so_env %}<div class="aviso"><span class="dot warn"></span>Sem <code>CEQ_ENCRYPTION_KEY</code> no .env: novas credenciais não podem ser salvas. Valores antigos podem ainda estar sem cifra.</div>{% endif %}
 
   <p style="margin-bottom:4px;"><b>Como seu app conecta o Instagram</b>
     {% if modo_no_env %}<span class="sub">definido no .env (META_LOGIN_MODO)</span>{% endif %}</p>

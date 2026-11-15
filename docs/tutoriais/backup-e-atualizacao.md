@@ -5,7 +5,7 @@ Tudo que importa mora num arquivo só: o banco SQLite, com leads, fluxos, etique
 ## O que guardar
 
 1. **O banco.** Baixe pelo painel ou pela linha de comando (abaixo).
-2. **A `CEQ_ENCRYPTION_KEY` do `.env`.** As credenciais que você salvou pelo painel (chave secreta do app, token do WhatsApp) ficam cifradas no banco com essa chave. Banco sem a chave = você vai precisar colar as credenciais de novo.
+2. **A `CEQ_ENCRYPTION_KEY` original.** Novas credenciais são cifradas com essa chave; guarde uma cópia segura separada do banco. Sem a chave original os valores cifrados não podem ser lidos.
 
 Guarde os dois fora do servidor, em lugares diferentes. O backup tem o acesso da sua conta do Instagram dentro: trate como senha.
 
@@ -46,6 +46,16 @@ sudo docker compose up -d
 Com a tag `:estavel`, isso pega a última versão final. Com uma versão fixa (`:1.7.3`), troque o número no `docker-compose.yml` antes do `pull`.
 
 O banco é atualizado sozinho quando a versão nova sobe. As mudanças de banco só acrescentam; não apagam dado.
+
+### Cifrar credenciais de uma instalação antiga
+
+Depois de criar um backup e testar sua restauração em ambiente isolado, confirme que a chave original está disponível à aplicação e execute no ambiente da instância:
+
+```bash
+python -m app.migrar_credenciais --backup-testado
+```
+
+A migração valida as credenciais já cifradas, recusa chave incompatível e converte os valores legados em uma transação. Se não existir valor cifrado, ela não consegue provar que a chave escolhida é a original. Ela pode ser repetida. Backups anteriores, páginas livres e arquivos WAL podem conter valores antigos em texto legível: mantenha-os protegidos e aplique uma política segura de retenção. Não gere uma chave nova para substituir a original de dados já cifrados.
 
 ## Conferir a versão
 

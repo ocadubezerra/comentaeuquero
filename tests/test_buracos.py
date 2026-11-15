@@ -33,7 +33,6 @@ def _assina(secret, corpo):
 def test_webhook_aceita_assinatura_com_secret_do_painel(client, monkeypatch):
     from app import flowengine, segredos
     monkeypatch.delenv("META_APP_SECRET", raising=False)
-    monkeypatch.delenv("CEQ_ENCRYPTION_KEY", raising=False)
     monkeypatch.setattr(flowengine, "process_payload", lambda p: None)
     segredos.guardar("meta_app_secret", "do-painel")
     corpo = json.dumps({"object": "instagram", "entry": []}).encode()
@@ -48,7 +47,6 @@ def test_webhook_aceita_assinatura_com_secret_do_painel(client, monkeypatch):
 
 def test_env_vence_o_painel(monkeypatch):
     from app import segredos
-    monkeypatch.delenv("CEQ_ENCRYPTION_KEY", raising=False)
     segredos.guardar("meta_app_secret", "do-painel")
     segredos.guardar("meta_app_id", "222")
     monkeypatch.setenv("META_APP_SECRET", "do-env")

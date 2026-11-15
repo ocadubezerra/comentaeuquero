@@ -29,7 +29,7 @@ def painel(client, monkeypatch):
     """Painel logado, com os dois pares de chave preenchidos e banco sem conta."""
     from app import main
     from tests.conftest import _login
-    for v in ("CEQ_ENCRYPTION_KEY", "META_APP_ID", "META_APP_SECRET", "META_LOGIN_MODO",
+    for v in ("META_APP_ID", "META_APP_SECRET", "META_LOGIN_MODO",
               "META_FB_APP_ID", "META_FB_APP_SECRET", "META_FB_CONFIG_ID"):
         monkeypatch.delenv(v, raising=False)
     monkeypatch.setattr(main, "BASE_URL", BASE)

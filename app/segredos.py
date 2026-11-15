@@ -1,19 +1,11 @@
 """Segredos que entram pelo painel. Cifrados com CEQ_ENCRYPTION_KEY (Fernet).
 
-Três estados da chave, e o painel mostra cada um:
-- ok: cifra. Valor que estava em claro (raw:) é recifrado na primeira leitura.
-- ausente (instância antiga): guarda em claro e o painel avisa.
-- invalida (chave mal formada no .env): também guarda em claro, mas registra aviso
-  no log e o painel diz "chave inválida". Antes isso caía calado no "sem chave", e
-  o dono achava que estava cifrando.
+Sem chave válida, novas credenciais não são gravadas. Valores antigos em claro
+continuam legíveis e são recifrados quando lidos com uma chave válida.
 """
-import logging
 import os
 
 from . import db
-
-log = logging.getLogger("ceq.segredos")
-
 
 def _fernet():
     """Fernet pronto, ou None sem chave. Levanta se a chave for inválida."""
@@ -40,13 +32,13 @@ def cifrado_disponivel() -> bool:
 
 
 def _gravar(chave: str, valor: str) -> None:
-    estado = estado_chave()
-    if estado == "ok":
-        db.set_ajuste(f"seg:{chave}", "enc:" + _fernet().encrypt(valor.encode()).decode())
+    if not valor:
+        db.set_ajuste(f"seg:{chave}", "")
         return
-    if estado == "invalida":
-        log.warning("CEQ_ENCRYPTION_KEY inválida: %s guardado sem cifra", chave)
-    db.set_ajuste(f"seg:{chave}", "raw:" + valor)
+    if estado_chave() != "ok":
+        raise ValueError("CEQ_ENCRYPTION_KEY ausente ou inválida; segredo não foi salvo")
+    db.validar_chave_existente()
+    db.set_ajuste(f"seg:{chave}", "enc:" + _fernet().encrypt(valor.encode()).decode())
 
 
 def guardar(chave: str, valor: str) -> None:

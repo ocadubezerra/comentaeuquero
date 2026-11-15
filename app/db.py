@@ -11,6 +11,7 @@ import sqlite3
 import threading
 import time
 from pathlib import Path
+from . import crypto_tokens
 
 DATA_DIR = Path(os.environ.get("DATA_DIR", "./data"))
 DB_PATH = DATA_DIR / "comentaeuquero.db"
@@ -470,6 +471,26 @@ def purgar_eventos_antigos(dias: int) -> int:
 
 # ---------- accounts ----------
 
+def validar_chave_existente():
+    """Recusa a gravação se uma credencial existente não abrir com a chave atual."""
+    from cryptography.fernet import InvalidToken
+    f = crypto_tokens._chave()
+    for row in conn().execute("SELECT access_token FROM accounts"):
+        value = row["access_token"] or ""
+        if value.startswith(crypto_tokens.PREFIX):
+            crypto_tokens.ler(value)
+    for row in conn().execute("SELECT valor FROM ajustes WHERE chave LIKE 'seg:%'"):
+        value = row["valor"] or ""
+        if value.startswith("enc:"):
+            try:
+                f.decrypt(value[4:].encode())
+            except (InvalidToken, ValueError, UnicodeError) as exc:
+                raise crypto_tokens.ErroChave("Não foi possível validar as credenciais existentes") from exc
+    telegram = get_ajuste("alerta_telegram_token", "")
+    if telegram.startswith(crypto_tokens.PREFIX):
+        crypto_tokens.ler(telegram)
+
+
 def upsert_account(ig_id, ig_user_id, username, access_token, token_expires_at):
     """Conta conectada pelo login do Instagram.
 
@@ -480,6 +501,8 @@ def upsert_account(ig_id, ig_user_id, username, access_token, token_expires_at):
     seguem. Linhas que já estão no login do Instagram não entram nessa busca: ali
     nada muda em relação à 1.11.0.
     """
+    validar_chave_existente()
+    access_token = crypto_tokens.cifrar(access_token)
     ig_id, ig_user_id = str(ig_id), str(ig_user_id or "")
     if ig_user_id and not conn().execute(
             "SELECT 1 FROM accounts WHERE ig_id=?", (ig_id,)).fetchone():
@@ -518,6 +541,8 @@ def upsert_account_fb(ig_user_id, username, access_token, token_expires_at, page
     existir, a linha é a mesma: fluxos, leads e histórico seguem, só muda o jeito de
     falar com a Meta. Senão, nasce com ig_id = ig_user_id = esse ID.
     """
+    validar_chave_existente()
+    access_token = crypto_tokens.cifrar(access_token)
     ig_user_id = str(ig_user_id)
     atual = get_account_by_ig_id(ig_user_id)
     conta_id = atual["id"] if atual else None
@@ -544,7 +569,15 @@ def get_account_by_ig_id(ig_id):
     r = conn().execute(
         "SELECT * FROM accounts WHERE ig_id=? OR ig_user_id=?",
         (str(ig_id), str(ig_id))).fetchone()
-    return dict(r) if r else None
+    return _conta_decifrada(r)
+
+
+def _conta_decifrada(row):
+    if not row:
+        return None
+    conta = dict(row)
+    conta["access_token"] = crypto_tokens.ler(conta["access_token"])
+    return conta
 
 
 def proximo_da_rotacao(chave: str, total: int) -> int:
@@ -568,22 +601,68 @@ def proximo_da_rotacao(chave: str, total: int) -> int:
 
 def get_account(account_id):
     r = conn().execute("SELECT * FROM accounts WHERE id=?", (account_id,)).fetchone()
-    return dict(r) if r else None
+    return _conta_decifrada(r)
 
 
 def first_account():
     r = conn().execute("SELECT * FROM accounts ORDER BY id LIMIT 1").fetchone()
-    return dict(r) if r else None
+    return _conta_decifrada(r)
 
 
 def all_accounts():
-    return [dict(r) for r in conn().execute("SELECT * FROM accounts ORDER BY id")]
+    return [_conta_decifrada(r) for r in conn().execute("SELECT * FROM accounts ORDER BY id")]
 
 
 def update_token(account_id, access_token, token_expires_at):
+    validar_chave_existente()
     conn().execute("UPDATE accounts SET access_token=?, token_expires_at=? WHERE id=?",
-                   (access_token, token_expires_at, account_id))
+                   (crypto_tokens.cifrar(access_token), token_expires_at, account_id))
     conn().commit()
+
+
+def migrar_credenciais():
+    """Cifra valores legados em uma transação. Execute somente após backup testado."""
+    f = crypto_tokens._chave()
+    c = conn()
+    try:
+        c.execute("BEGIN IMMEDIATE")
+        accounts = c.execute("SELECT id, access_token FROM accounts").fetchall()
+        settings = c.execute("SELECT chave, valor FROM ajustes WHERE chave LIKE 'seg:%'").fetchall()
+        telegram = c.execute("SELECT valor FROM ajustes WHERE chave='alerta_telegram_token'").fetchone()
+        # Validar todos os valores já cifrados antes de modificar qualquer linha.
+        for row in accounts:
+            if row["access_token"].startswith(crypto_tokens.PREFIX):
+                crypto_tokens.ler(row["access_token"])
+        for row in settings:
+            value = row["valor"] or ""
+            if value.startswith("enc:"):
+                f.decrypt(value[4:].encode())
+            elif value and not value.startswith("raw:"):
+                raise ValueError("Formato desconhecido em credencial existente")
+        if telegram and (telegram["valor"] or "").startswith(crypto_tokens.PREFIX):
+            crypto_tokens.ler(telegram["valor"])
+        n_accounts = n_settings = 0
+        for row in accounts:
+            token = row["access_token"]
+            if token and not token.startswith(crypto_tokens.PREFIX):
+                c.execute("UPDATE accounts SET access_token=? WHERE id=?",
+                          (crypto_tokens.cifrar(token), row["id"]))
+                n_accounts += 1
+        for row in settings:
+            value = row["valor"] or ""
+            if value.startswith("raw:") and value[4:]:
+                c.execute("UPDATE ajustes SET valor=? WHERE chave=?",
+                          ("enc:" + f.encrypt(value[4:].encode()).decode(), row["chave"]))
+                n_settings += 1
+        if telegram and telegram["valor"] not in (None, "", "off") and not telegram["valor"].startswith(crypto_tokens.PREFIX):
+            c.execute("UPDATE ajustes SET valor=? WHERE chave='alerta_telegram_token'",
+                      (crypto_tokens.cifrar(telegram["valor"]),))
+            n_settings += 1
+        c.commit()
+        return n_accounts, n_settings
+    except Exception:
+        c.rollback()
+        raise
 
 
 def update_account_pic(account_id, profile_pic):
@@ -1538,7 +1617,7 @@ def get_account_by_wa_phone(phone_number_id: str):
         return None
     r = conn().execute("SELECT * FROM accounts WHERE wa_phone_number_id=? LIMIT 1",
                        (str(phone_number_id),)).fetchone()
-    return dict(r) if r else None
+    return _conta_decifrada(r)
 
 
 def set_wa_config(account_id, waba_id: str, phone_number_id: str) -> None:

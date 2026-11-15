@@ -9,7 +9,7 @@ Todas as variáveis que a instância lê. Depois de mudar o `.env`, rode `docker
 | `BASE_URL` | vazio | Endereço público com `https`, sem barra no fim. Monta o endereço de retorno do login do Instagram e liga o cookie seguro. |
 | `WEBHOOK_VERIFY_TOKEN` | `troque-este-token` | Texto que você inventa e cola igual no webhook da Meta. Troque o padrão. |
 | `ADMIN_PASSWORD` | vazio | Senha do painel. Se estiver preenchida, vale mais que a senha criada no primeiro acesso. |
-| `CEQ_ENCRYPTION_KEY` | vazio | Chave que cifra as credenciais salvas pelo painel. Sem ela, ficam sem cifra e o painel avisa. [Como gerar](../instalar/docker.md). |
+| `CEQ_ENCRYPTION_KEY` | vazio | Chave necessária para salvar credenciais. Sem chave válida, novas credenciais são recusadas; dados antigos podem ainda estar em texto legível até a migração. [Como gerar](../instalar/docker.md). |
 | `META_LOGIN_MODO` | vazio | Como conectar o Instagram: `facebook_login` (login unificado, app novo) ou `instagram_login` (app antigo). Vazio = o escolhido no painel; sem escolha, login do Instagram. |
 | `META_FB_APP_ID` | vazio | Login unificado: ID do aplicativo (app geral, Configurações do app → Básico). |
 | `META_FB_APP_SECRET` | vazio | Login unificado: chave secreta do aplicativo (app geral). Assina os eventos da Meta. |

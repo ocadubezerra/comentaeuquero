@@ -1,7 +1,7 @@
 import os
+import pytest
 def test_cifra_e_decifra(monkeypatch, tmp_path):
     from cryptography.fernet import Fernet
-    monkeypatch.setenv("CEQ_ENCRYPTION_KEY", Fernet.generate_key().decode())
     import importlib, app.segredos as s; importlib.reload(s)
     s.guardar("meta_app_secret", "abc123")
     from app import db
@@ -39,36 +39,42 @@ def test_estado_chave_tres_casos(monkeypatch):
     assert s.estado_chave() == "ok" and s.cifrado_disponivel() is True
 
 
-def test_chave_invalida_grava_raw_com_aviso_e_painel_mostra(monkeypatch, caplog, client):
-    import logging
+def test_chave_invalida_nao_grava_e_informa_erro(monkeypatch, client):
     from app import db
+    import uuid
+    conta = db.upsert_account(uuid.uuid4().hex, "", "teste", "token-teste", "")
     s = _s(monkeypatch, "isso-nao-e-fernet")
     assert s.cifrado_disponivel() is False
-    with caplog.at_level(logging.WARNING, logger="ceq.segredos"):
+    antes = db.get_ajuste("seg:meta_app_secret", "")
+    with pytest.raises(ValueError):
         s.guardar("meta_app_secret", "seg-x")
-    assert db.get_ajuste("seg:meta_app_secret", "") == "raw:seg-x"
-    assert any("inválida" in r.getMessage() for r in caplog.records)
+    assert db.get_ajuste("seg:meta_app_secret", "") == antes
     from app.main import definir_senha
     definir_senha("Minha senha 123")
-    client.post("/login", data={"senha": "Minha senha 123"})
-    html = client.get("/config").text
-    assert "CEQ_ENCRYPTION_KEY</code> com chave inválida no .env" in html  # aviso no card
-    assert "</span>chave inválida</td>" in html                           # linha do ambiente
+    client.post("/login", data={"senha": "Minha senha 123"}, follow_redirects=False)
+    r = client.get("/config")
+    assert r.status_code == 503 and "chave original" in r.text
+    db.delete_account(conta["id"])
 
 
 def test_sem_chave_painel_nao_diz_invalida(monkeypatch, client):
+    import uuid
+    from app import db
+    conta = db.upsert_account(uuid.uuid4().hex, "", "teste", "token-teste", "")
     _s(monkeypatch, None)
     from app.main import definir_senha
     definir_senha("Minha senha 123")
-    client.post("/login", data={"senha": "Minha senha 123"})
-    assert "chave inválida" not in client.get("/config").text
+    client.post("/login", data={"senha": "Minha senha 123"}, follow_redirects=False)
+    r = client.get("/config")
+    assert r.status_code == 503 and "chave original" in r.text
+    db.delete_account(conta["id"])
 
 
 def test_ler_recifra_valor_em_claro(monkeypatch):
     from cryptography.fernet import Fernet
     from app import db
     db.set_ajuste("seg:meta_app_secret", "raw:antigo")
-    s = _s(monkeypatch, Fernet.generate_key().decode())
+    s = _s(monkeypatch, os.environ["CEQ_ENCRYPTION_KEY"])
     assert s.ler("meta_app_secret") == "antigo"
     bruto = db.get_ajuste("seg:meta_app_secret", "")
     assert bruto.startswith("enc:") and "antigo" not in bruto
