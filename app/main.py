@@ -366,11 +366,12 @@ def conexao_insegura(request: Request) -> bool:
     """True quando a senha viajaria em claro nesta requisição."""
     if PERMITE_HTTP or not COOKIE_SEGURO:
         return False
-    esquema = (request.headers.get("x-forwarded-proto", "")
-               or request.url.scheme).split(",")[0].strip().lower()
+    cliente = request.client.host if request.client else ""
+    # Headers enviados por clientes externos não comprovam que houve HTTPS.
+    encaminhado = request.headers.get("x-forwarded-proto", "") if _e_proxy(cliente) else ""
+    esquema = (encaminhado or request.url.scheme).split(",")[0].strip().lower()
     if esquema == "https":
         return False
-    cliente = request.client.host if request.client else ""
     host = (request.url.hostname or "").lower()
     return not (cliente in _LOCAIS and host in _LOCAIS)
 
@@ -689,7 +690,16 @@ def webhook_verify(request: Request):
 
 @app.post("/webhook")
 async def webhook_receive(request: Request, background: BackgroundTasks):
-    raw = await request.body()
+    # Impõe limite também quando Content-Length está ausente ou é falso.
+    limite = 1024 * 1024
+    partes = []
+    tamanho = 0
+    async for parte in request.stream():
+        tamanho += len(parte)
+        if tamanho > limite:
+            return Response(status_code=413)
+        partes.append(parte)
+    raw = b"".join(partes)
 
     # Sem APP_SECRET não existe como provar que o evento veio da Meta. Antes isso
     # simplesmente pulava a conferência, ou seja, a rota aceitava POST de qualquer
