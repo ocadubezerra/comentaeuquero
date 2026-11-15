@@ -13,7 +13,7 @@ FROM python:3.12-slim
 # Vincula a imagem ao repositório no ghcr. Sem este label o pacote fica solto e o
 # GITHUB_TOKEN do Actions não consegue publicar nele (denied: write_package) — foi
 # o que derrubou as duas primeiras tentativas do workflow.
-LABEL org.opencontainers.image.source="https://github.com/cadubezerrapro/comentaeuquero"
+LABEL org.opencontainers.image.source="https://github.com/ocadubezerra/comentaeuquero"
 
 WORKDIR /srv/app
 COPY requirements.txt .

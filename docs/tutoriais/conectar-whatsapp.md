@@ -7,7 +7,7 @@ O WhatsApp usa um **app da Meta só pra ele**, separado do app do Instagram. Lev
 > [!NOTE]
 > **Os nomes das telas**
 >
-> Os nomes abaixo são os da interface da Meta em português em outubro de 2026. Se algo estiver diferente, procure pelo termo mais próximo e [conte pra gente](https://github.com/cadubezerrapro/comentaeuquero/issues).
+> Os nomes abaixo são os da interface da Meta em português em outubro de 2026. Se algo estiver diferente, procure pelo termo mais próximo e [conte pra gente](https://github.com/ocadubezerra/comentaeuquero/issues).
 
 ## O que você vai juntar
 

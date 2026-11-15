@@ -36,7 +36,7 @@ volumes:
   ceq_data:
 ```
 
-A imagem é publicada pelo workflow `.github/workflows/imagem.yml` do repositório [cadubezerrapro/comentaeuquero](https://github.com/cadubezerrapro/comentaeuquero) a cada tag `vX.Y.Z`. A tag `:estavel` aponta sempre para a última versão final. Se o pacote no GHCR estiver privado, rode `docker login ghcr.io` antes. Sem imagem publicada, clone o repositório e use o `docker-compose.yml` dele, que faz o build local.
+A imagem é publicada pelo workflow `.github/workflows/imagem.yml` do repositório [cadubezerrapro/comentaeuquero](https://github.com/ocadubezerra/comentaeuquero) a cada tag `vX.Y.Z`. A tag `:estavel` aponta sempre para a última versão final. Se o pacote no GHCR estiver privado, rode `docker login ghcr.io` antes. Sem imagem publicada, clone o repositório e use o `docker-compose.yml` dele, que faz o build local.
 
 O `127.0.0.1:` na frente da porta é de propósito. O app só escuta de dentro da máquina, e quem fala com a internet é o proxy com HTTPS. Sem isso o painel ficaria aberto em `http://SEU-IP:8080`, com a senha trafegando sem criptografia.
 

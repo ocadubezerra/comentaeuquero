@@ -34,4 +34,4 @@ Na ordem em que você vai precisar. Os três primeiros são obrigatórios; o res
 > [!TIP]
 > **Travou em alguma etapa?**
 >
-> Olhe o [FAQ](../faq.md) primeiro. Se não resolver, abra uma issue no [GitHub](https://github.com/cadubezerrapro/comentaeuquero/issues) contando o que fez e o que apareceu na tela.
+> Olhe o [FAQ](../faq.md) primeiro. Se não resolver, abra uma issue no [GitHub](https://github.com/ocadubezerra/comentaeuquero/issues) contando o que fez e o que apareceu na tela.

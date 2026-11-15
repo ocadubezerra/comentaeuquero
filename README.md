@@ -2,13 +2,13 @@
 
 [![License](https://img.shields.io/badge/license-Sustainable%20Use%201.0-blue)](LICENSE.md)
 [![Python](https://img.shields.io/badge/python-3.12-blue?logo=python&logoColor=white)](requirements.txt)
-[![Docker Image](https://github.com/cadubezerrapro/comentaeuquero/actions/workflows/imagem.yml/badge.svg)](https://github.com/cadubezerrapro/comentaeuquero/actions/workflows/imagem.yml)
-[![Tests](https://github.com/cadubezerrapro/comentaeuquero/actions/workflows/testes.yml/badge.svg)](https://github.com/cadubezerrapro/comentaeuquero/actions/workflows/testes.yml)
-[![Release](https://img.shields.io/github/v/release/cadubezerrapro/comentaeuquero)](https://github.com/cadubezerrapro/comentaeuquero/releases)
+[![Docker Image](https://github.com/ocadubezerra/comentaeuquero/actions/workflows/imagem.yml/badge.svg)](https://github.com/ocadubezerra/comentaeuquero/actions/workflows/imagem.yml)
+[![Tests](https://github.com/ocadubezerra/comentaeuquero/actions/workflows/testes.yml/badge.svg)](https://github.com/ocadubezerra/comentaeuquero/actions/workflows/testes.yml)
+[![Release](https://img.shields.io/github/v/release/ocadubezerra/comentaeuquero)](https://github.com/ocadubezerra/comentaeuquero/releases)
 
 Automação de comentários no Instagram: a pessoa comenta **EU QUERO** (ou a palavra que você definir) e recebe o link no direct. Painel, editor de fluxos visual e deploy com Docker — no seu próprio servidor, com seu próprio app da Meta, sem mensalidade e sem limite de contatos.
 
-[Documentação](docs/) · [Changelog](CHANGELOG.md) · [Reportar um bug](https://github.com/cadubezerrapro/comentaeuquero/issues)
+[Documentação](docs/) · [Changelog](CHANGELOG.md) · [Reportar um bug](https://github.com/ocadubezerra/comentaeuquero/issues)
 
 ---
 
@@ -26,7 +26,7 @@ Automação de comentários no Instagram: a pessoa comenta **EU QUERO** (ou a pa
 Pré-requisitos: conta profissional do Instagram, Docker e um endpoint HTTPS público.
 
 ```bash
-git clone https://github.com/cadubezerrapro/comentaeuquero.git
+git clone https://github.com/ocadubezerra/comentaeuquero.git
 cd comentaeuquero
 cp .env.example .env   # preencha com suas credenciais
 docker compose up -d
@@ -54,7 +54,7 @@ Python 3.12 · FastAPI · SQLite · Vue 3 (Vue Flow) · Docker · imagens assina
 
 Distribuído sob a [Sustainable Use License 1.0](LICENSE.md). Você pode usar, modificar e instalar para clientes — não pode hospedar e revender como serviço (SaaS).
 
-Projeto mantido por **Cadu Bezerra** ([@cadubezerrapro](https://github.com/cadubezerrapro)).
+Projeto mantido por **Cadu Bezerra** ([@ocadubezerra](https://github.com/ocadubezerra)).
 
 ## Contribuindo
 
