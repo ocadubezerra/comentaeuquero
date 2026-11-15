@@ -3,7 +3,7 @@
 ## Como reportar uma vulnerabilidade
 
 **Não abra issue pública.** Use o reporte privado do GitHub:
-[**Report a vulnerability**](https://github.com/cadubezerrapro/comentaeuquero/security/advisories/new)
+[**Report a vulnerability**](https://github.com/ocadubezerra/comentaeuquero/security/advisories/new)
 (aba *Security* do repositório). Inclua:
 
 - o que você encontrou e onde (arquivo, rota ou tela);

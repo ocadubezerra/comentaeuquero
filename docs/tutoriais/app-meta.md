@@ -19,7 +19,7 @@ Você vai precisar de três coisas abertas: o painel da Meta, o painel do seu co
 > [!NOTE]
 > **Os nomes das telas**
 >
-> A Meta muda nomes e posições com frequência. Os nomes abaixo são os da interface em português em novembro de 2026. Se algo estiver diferente, procure pelo termo mais próximo e [conte pra gente](https://github.com/cadubezerrapro/comentaeuquero/issues).
+> A Meta muda nomes e posições com frequência. Os nomes abaixo são os da interface em português em novembro de 2026. Se algo estiver diferente, procure pelo termo mais próximo e [conte pra gente](https://github.com/ocadubezerra/comentaeuquero/issues).
 
 ## 1. Crie o app
 

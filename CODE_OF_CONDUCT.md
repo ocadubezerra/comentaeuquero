@@ -56,7 +56,7 @@ online ou offline.
 
 Casos de comportamento abusivo, de assédio ou inaceitável de outra forma podem ser
 reportados aos líderes da comunidade responsáveis pela aplicação pelo
-[reporte privado do GitHub](https://github.com/cadubezerrapro/comentaeuquero/security/advisories/new)
+[reporte privado do GitHub](https://github.com/ocadubezerra/comentaeuquero/security/advisories/new)
 ou pela opção *Report content* do próprio GitHub.
 Todas as reclamações serão analisadas e investigadas de forma imediata e justa.
 
